@@ -12,13 +12,18 @@ class Network(DataLink):
 
 
     def networkSend(self, pkg, nos):
-        if nos[pkg.rec_node].routes.get(pkg.net_header[1]) is None:
-            print("nao tem na tabela")
-            nos[pkg.rec_node].routeRequest(nos, pkg)
-        else:
-            print("tem na tabela")
         pkg_send = copy.deepcopy(pkg)
-        pkg_send.dl_header = [pkg.rec_node, nos[pkg.rec_node].routes.get(pkg.net_header[1])]
+        if pkg_send.dsr[0] == -1:
+            if nos[pkg_send.rec_node].routes.get(pkg_send.net_header[1]) is None:
+                print("nao tem na tabela")
+                nos[pkg_send.rec_node].routeRequest(nos, pkg_send)
+                print("enviar dado")
+                pkg_send.dsr = nos[pkg_send.rec_node].routes.get(pkg_send.net_header[1])
+            else:
+                print("tem na tabela")
+                pkg_send.dsr = nos[pkg_send.rec_node].routes.get(pkg_send.net_header[1])
+        pkg_send.dl_header = [pkg_send.dsr[0], pkg_send.dsr[1]]
+        pkg_send.dsr.pop(0)
         super().mediumAccessControl(pkg_send, nos)
         pass
 
@@ -40,6 +45,7 @@ class Network(DataLink):
                 print("o 8 deve entrar aq")
                 data_cpy.reverse()
                 rrep = pk.Package(pkg.id, pkg.net_header[1], pkg.net_header[0], data_cpy, "RREP")
+                rrep.dsr = copy.deepcopy(data_cpy)
                 nos[pkg.rec_node].rrep_buffer.append(rrep.id)
                 print("pacote RREP: ")
                 nos[pkg.rec_node].networkSend(rrep, nos)                                                                                    #envia rrep
@@ -73,29 +79,29 @@ class Network(DataLink):
 
     def fillTable(self, nos, pkg):
         node_index = pkg.data.index(nos[pkg.rec_node].id)
-        nextAddrLeft = -1
-        nextAddrRight = -1
+        pkg_copy = copy.deepcopy(pkg.data)
+        
+        print(node_index)
 
-        print("index: " +str(node_index))
-        print("size: " +str(len(pkg.data)))
-        print(node_index != (len(pkg.data) - 1))
+        #caminho adquirido com o RREQ
+        leftPath = pkg_copy[:node_index+1]
+        leftPath.reverse()
+        if node_index != 0:
+            for i in range(1,len(leftPath)):
+                if nos[pkg.rec_node].routes.get(leftPath[i]) is None:
+                    nos[pkg.rec_node].routes[leftPath[i]] = leftPath[:i+1]
+                elif len(nos[pkg.rec_node].routes[leftPath[i]]) > len(leftPath[:i+1]):
+                    nos[pkg.rec_node].routes[leftPath[i]] = leftPath[:i+1]
 
-        if node_index != (len(pkg.data) - 1):                           #indice nao eh o ultimo
-            nextAddrRight = pkg.data[node_index+1]
-        if node_index != 0:                                             #indice nao eh o primeiro
-            nextAddrLeft = pkg.data[node_index-1]
-
-        print(nextAddrLeft)
-        if nextAddrLeft is not (-1):
-            for i in pkg.data[:node_index]:
-                nos[pkg.rec_node].routes[i] = nextAddrLeft
-                print(nos[pkg.rec_node].routes)
-
-        print(nextAddrRight)
-        if nextAddrRight is not (-1):
-            for i in pkg.data[node_index+1:]:
-                nos[pkg.rec_node].routes[i] = nextAddrRight
+        #caminho adquirido com o RREP
+        rightPath = pkg_copy[node_index:]
+        if node_index != (len(pkg.data) - 1):
+            for i in range(1,len(rightPath)):
+                if nos[pkg.rec_node].routes.get(rightPath[i]) is None:
+                    nos[pkg.rec_node].routes[rightPath[i]] = rightPath[:i+1]
+                elif len(nos[pkg.rec_node].routes[rightPath[i]]) > len(rightPath[:i+1]):
+                    nos[pkg.rec_node].routes[rightPath[i]] = rightPath[:i+1]
 
         print(nos[pkg.rec_node].routes)
-
+        
         pass

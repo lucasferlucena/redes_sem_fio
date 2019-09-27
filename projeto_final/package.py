@@ -8,3 +8,4 @@ class Package():
         self.dl_header = [origem, -1]
         self.type = pkg_type
         self.rec_node = origem
+        self.dsr = [-1]
