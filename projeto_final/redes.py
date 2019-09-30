@@ -13,8 +13,8 @@ for x in range(3):
 
 nos = np.array(nos)
 
-pkg0 = pk.Package(0, 0, 10, [1,1,1,1,1], "DATA")
-pkg1 = pk.Package(10, 3, 8, [1,1,2,2,1], "DATA")
+pkg0 = pk.Package(0, 0, 8, [1,1,1,1,1], "DATA")
+#pkg1 = pk.Package(10, 3, 8, [1,1,2,2,1], "DATA")
 
 for i in nos:
     i.findNeighbors(i.id, nos)
