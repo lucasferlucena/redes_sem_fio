@@ -7,7 +7,6 @@ class Router(Network):
         self.neighbors = []
         self.routes = {self.id:self.id}
         self.busy_tone = 0
-        self.pkg_buffer = []
         self.rreq_buffer = []
         self.rrep_buffer = []
         

@@ -3,7 +3,10 @@ import router as node
 import numpy as np
 from scipy.spatial import distance
 import copy
+import logging
 
+logging.basicConfig(filename='example.log',level=logging.DEBUG)
+    
 count = 0
 nos = []
 for x in range(3):
@@ -13,11 +16,11 @@ for x in range(3):
 
 nos = np.array(nos)
 
-pkg0 = pk.Package(0, 0, 8, [1,1,1,1,1], "DATA")
-#pkg1 = pk.Package(10, 3, 8, [1,1,2,2,1], "DATA")
+pkg0 = pk.Package(0, 0, 4, [1,1,1,1,1], "DATA")
+pkg1 = pk.Package(10, 3, 8, [1,1,2,2,1], "DATA")
 
 for i in nos:
     i.findNeighbors(i.id, nos)
 
 nos[0].networkSend(pkg0,nos)
-#nos[3].networkSend(pkg1,nos)
+nos[3].networkSend(pkg1,nos)
